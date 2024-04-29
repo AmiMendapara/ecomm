@@ -1,4 +1,9 @@
-const cartReducer = (state, action) => {
+const initialState = {
+  cart: [],
+  // Add other initial state properties if any
+};
+
+const cartReducer = (state = initialState, action) => {
   if (action.type === "ADD_TO_CART") {
     let { id, color, amount, product } = action.payload;
   
