@@ -1,122 +1,126 @@
 const cartReducer = (state, action) => {
-  // Check if state.cart is null or undefined
-  if (!state.cart) {
-    // Return the current state if state.cart is null or undefined
-    return state;
-  }
-
   if (action.type === "ADD_TO_CART") {
     let { id, color, amount, product } = action.payload;
   
-    let existingProduct=state.cart.find((curItem)=>curItem.id===id+color);
+    let existingProduct = state.cart.find((curItem) => curItem.id === id + color);
 
-    if(existingProduct){
-      let updateProduct=state.cart.map((curElem)=>{
-        if(curElem.id===id+color){
-          let newAmount=curElem.amount+amount;
-          if(newAmount>=curElem.max){
-            newAmount=curElem.max;
+    if (existingProduct) {
+      let updateProduct = state.cart.map((curElem) => {
+        if (curElem.id === id + color) {
+          let newAmount = curElem.amount + amount;
+          if (newAmount >= curElem.max) {
+            newAmount = curElem.max;
           }
-          return{
+          return {
             ...curElem,
-            amount:newAmount,
+            amount: newAmount,
           }
-        }
-        else{
-          return{
+        } else {
+          return {
             ...curElem,
           }
         }
       });
-      return{
+      return {
         ...state,
-        cart:updateProduct,
+        cart: updateProduct,
       }
-    }
-    else{    
-     let cartProduct = {
-      id: id + color,
-      name: product.name,
-      color,
-      amount,
-      image: product.image[0].url,
-      price: product.price,
-      max: product.stock,
-    };
+    } else {    
+      let cartProduct = {
+        id: id + color,
+        name: product.name,
+        color,
+        amount,
+        image: product.image[0].url,
+        price: product.price,
+        max: product.stock,
+      };
 
+      return {
+        ...state,
+        cart: [...state.cart, cartProduct],
+      };
+    }
+  }
+  
+  // Handle increment action
+  if (action.type === "SET_INCREMENT") {
+    let updateProduct = state.cart.map((curElem) => {
+      if (curElem.id === action.payload) {
+        let incAmount = curElem.amount + 1;
+        if (incAmount >= curElem.max) {
+          incAmount = curElem.max;
+        }
+        return {
+          ...curElem,
+          amount: incAmount,
+        }
+      } else {
+        return curElem;
+      }
+    });
     return {
       ...state,
-      cart: [...state.cart, cartProduct],
-    };
+      cart: updateProduct
+    }
   }
-  }
-  //to set increment and decrement
-  if(action.type==="SET_DECREMENT"){
-    let updatedCart=state.cart.map((curElem)=>{
-      if(curElem.id===action.payload){
-        let decAmount=curElem.amount-1;
-        if(decAmount<=1){
-          decAmount=1;
+
+  // Handle decrement action
+  if (action.type === "SET_DECREMENT") {
+    let updatedCart = state.cart.map((curElem) => {
+      if (curElem.id === action.payload) {
+        let decAmount = curElem.amount - 1;
+        if (decAmount <= 1) {
+          decAmount = 1;
         }
-        return{
+        return {
           ...curElem,
-          amount:decAmount,
+          amount: decAmount,
         }
-      }else{
+      } else {
         return curElem;
       }
     });
-    return{
+    return {
       ...state,
-      cart:updatedCart
+      cart: updatedCart
     }
   }
 
-  if(action.type==="SET_INCREMENT"){
-    let updateProduct=state.cart.map((curElem)=>{
-      if(curElem.id===action.payload){
-        let incAmount=curElem.amount+1;
-        if(incAmount>=curElem.max){
-          incAmount=curElem.max;
-        }
-        return{
-          ...curElem,
-          amount:incAmount,
-        }
-      }else{
-        return curElem;
-      }
-    });
-    return{
+  // Handle remove item action
+  if (action.type === "REMOVE_ITEM") {
+    let updatedCart = state.cart.filter((curItem) => curItem.id !== action.payload);
+    return {
       ...state,
-      cart:updateProduct
+      cart: updatedCart,
     }
   }
 
-
-
-  if(action.type==="REMOVE_ITEM"){
-    let updatedCart=state.cart.filter((curItem)=>curItem.id!==action.payload);
-    return{
+  // Handle clear cart action
+  if (action.type === "CLEAR_CART") {
+    return {
       ...state,
-      cart:updatedCart,
+      cart: [],
     }
   }
-  if(action.type==="CLEAR_CART"){
-    return{
-      ...state,
-      cart:[],
-    }
-  }
- 
+
+  // Handle total price calculation action
   if (action.type === "CART_ITEM_PRICE_TOTAL") {
+    // Check if state.cart is null or undefined
+    if (!state.cart) {
+      // If state.cart is null or undefined, return default values
+      return {
+        ...state,
+        total_item: 0,
+        total_price: 0,
+      };
+    }
+
     let { total_item, total_price } = state.cart.reduce(
       (accum, curElem) => {
         let { price, amount } = curElem;
-
         accum.total_item += amount;
         accum.total_price += price * amount;
-
         return accum;
       },
       {
@@ -131,6 +135,7 @@ const cartReducer = (state, action) => {
     };
   }
 
+  // If no action type matches, return current state
   return state;
 };
 
